@@ -1,0 +1,4 @@
+RESOURCE: a raw file loaded from the server
+ASSET: data parsed and loaded into applicable memory
+
+Game downloads RESOURCES, turns them in to ASSETS via functions like GFXCore.loadTexture() and SFXCore.loadSound()

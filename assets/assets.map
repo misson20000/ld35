@@ -1,0 +1,127 @@
+[
+  {
+    "type": "shader",
+    "id": "shader.vertex.pixel",
+    "shader_type": "vertex",
+    "source": "shaders/pixel.v.glsl"
+  },
+  {
+    "type": "shader",
+    "id": "shader.fragment.flat.texture",
+    "shader_type": "fragment",
+    "source": "shaders/tex.f.glsl"
+  },
+  {
+    "type": "shader_program",
+    "id": "shader.flat.texture",
+    "shaders": [
+      "shader.vertex.pixel",
+      "shader.fragment.flat.texture"
+    ],
+    "attributes": {
+      "vertPos": 0,
+      "texPos": 1,
+      "scale": 2,
+      "color": 3
+    },
+    "uniforms": [
+      "viewport", "scale", "texres", "matrix", "tex"
+    ]
+  },
+  {
+    "type": "shader",
+    "id": "shader.fragment.flat.color",
+    "shader_type": "fragment",
+    "source": "shaders/color.f.glsl"
+  },
+  {
+    "type": "shader_program",
+    "id": "shader.flat.color",
+    "shaders": [
+      "shader.vertex.pixel",
+      "shader.fragment.flat.color"
+    ],
+    "attributes": {
+      "vertPos": 0,
+      "color": 1
+    },
+    "uniforms": [
+      "viewport", "matrix"
+    ]
+  },
+  {
+    "type": "shader",
+    "id": "shader.post.gaussian.vertex.horizontal",
+    "shader_type": "vertex",
+    "source": "shaders/post/gauss_horiz.v.glsl"
+  },
+  {
+    "type": "shader",
+    "id": "shader.post.gaussian.vertex.vertical",
+    "shader_type": "vertex",
+    "source": "shaders/post/gauss_vert.v.glsl"
+  },
+  {
+    "type": "shader",
+    "id": "shader.post.gaussian.fragment",
+    "shader_type": "fragment",
+    "source": "shaders/post/gauss.f.glsl"
+  },
+  {
+    "type": "shader_program",
+    "id": "shader.post.gaussian.horizontal",
+    "shaders": [
+      "shader.post.gaussian.vertex.horizontal",
+      "shader.post.gaussian.fragment"
+    ],
+    "attributes": {
+      "vertPos": 0
+    },
+    "uniforms": [
+      "viewport",
+      "tex"
+    ]
+  },
+  {
+    "type": "shader_program",
+    "id": "shader.post.gaussian.vertical",
+    "shaders": [
+      "shader.post.gaussian.vertex.vertical",
+      "shader.post.gaussian.fragment"
+    ],
+    "attributes": {
+      "vertPos": 0
+    },
+    "uniforms": [
+      "viewport",
+      "tex"
+    ]
+  },
+  {
+    "type": "shader",
+    "id": "shader.post.vertex.null_vertex",
+    "shader_type": "vertex",
+    "source": "shaders/post/null.v.glsl"
+  },
+  {
+    "type": "shader",
+    "id": "shader.post.fragment.tint_blue",
+    "shader_type": "fragment",
+    "source": "shaders/post/tint_blue.f.glsl"
+  },
+  {
+    "type": "shader_program",
+    "id": "shader.post.tint_blue",
+    "shaders": [
+      "shader.post.vertex.null_vertex",
+      "shader.post.fragment.tint_blue"
+    ],
+    "attributes": {
+      "vertPos": 0
+    },
+    "uniforms": [
+      "viewport",
+      "tex"
+    ]
+  }
+]

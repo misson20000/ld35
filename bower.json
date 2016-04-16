@@ -1,0 +1,26 @@
+{
+  "name": "timegame",
+  "description": "",
+  "main": "main.js",
+  "authors": [
+    "Misson20000/Xenotoad <xenotoad@xenotoad.net>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "game"
+  ],
+  "moduleType": [],
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "fetch": "~0.10.1",
+    "es6-promise": "~3.0.2"
+  }
+}
