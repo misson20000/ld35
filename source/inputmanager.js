@@ -2,6 +2,7 @@ let kc = (e) => {
   if(e.code) {
     return e.code;
   }
+  
   switch(e.which) {
   case 37: return "ArrowLeft";
   case 38: return "ArrowUp";
@@ -31,6 +32,7 @@ export class InputManager {
     this.left  = new Key(this, ["ArrowLeft" , "KeyA"]);
     this.down  = new Key(this, ["ArrowDown" , "KeyS"]);
     this.right = new Key(this, ["ArrowRight", "KeyD"]);
+    this.fire  = new Key(this, ["KeyZ"]);
     
     document.addEventListener("keydown", (e) => {
       if(kc(e) == "Backquote") {
@@ -62,7 +64,7 @@ export class InputManager {
 class Key {
   constructor(input, keys) {
     this.input = input;
-    this.id = input._keys.length;
+    this.id = input._keys.length+1;
     for(let k in keys) {
       input._keymap[keys[k]] = this.id;
     }

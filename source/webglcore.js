@@ -5,7 +5,7 @@ export class WebGLCore {
   constructor(game, canvas, dbg) {
     this.canvas = canvas;
     this.game = game;
-    this.gl = canvas.getContext("webgl");
+    this.gl = canvas.getContext("webgl", {antialias:true});
     this.dbg = dbg;
     
     if(!this.gl) {
@@ -326,6 +326,12 @@ export class WebGLCore {
     gl.clear(gl.COLOR_BUFFER_BIT| gl.DEPTH_BUFFER_BIT);  
   }
 
+  clear(r, g, b) {
+    let gl = this.gl;
+    gl.clearColor(r, g, b, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT| gl.DEPTH_BUFFER_BIT);
+  }
+
   bindScreen() {
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
   }
@@ -337,7 +343,8 @@ export class WebGLCore {
     gl.enableVertexAttribArray(0);
     
     gl.uniform2f(shader.uniforms.viewport, this.width, this.height);
-
+    gl.uniform1f(shader.uniforms.gameTime, this.game.gametime.now);
+    
     let unit = 0;
     for(let uniform_name in textures) {
       if(textures.hasOwnProperty(uniform_name)) {
@@ -373,6 +380,7 @@ export class Framebuffer {
   updateSize() {
     if(this.width != this.gfx.width || this.height != this.gfx.height) {
       let gl = this.gfx.gl;
+      gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, this.texture);
       gl.bindRenderbuffer(gl.RENDERBUFFER, this.renderbuffer);
       gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.gfx.width, this.gfx.height);
@@ -410,7 +418,7 @@ export class Batch {
   }
 
   setupTexture(tex) {
-    let data = new Float32Array(this.max * 6 * 8);
+    let data = new Float32Array(this.max * 6 * 9);
     let buffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.DYNAMIC_DRAW);
@@ -440,6 +448,7 @@ export class Batch {
     buf.data[buf.pos++] = r;
     buf.data[buf.pos++] = g;
     buf.data[buf.pos++] = b;
+    buf.data[buf.pos++] = 1.0;
     
     buf.data[buf.pos++] = dx2;
     buf.data[buf.pos++] = dy2;
@@ -449,6 +458,7 @@ export class Batch {
     buf.data[buf.pos++] = r;
     buf.data[buf.pos++] = g;
     buf.data[buf.pos++] = b;
+    buf.data[buf.pos++] = 1.0;
 
     buf.data[buf.pos++] = dx3;
     buf.data[buf.pos++] = dy3;
@@ -458,6 +468,7 @@ export class Batch {
     buf.data[buf.pos++] = r;
     buf.data[buf.pos++] = g;
     buf.data[buf.pos++] = b;
+    buf.data[buf.pos++] = 1.0;
 
 
     
@@ -469,6 +480,7 @@ export class Batch {
     buf.data[buf.pos++] = r;
     buf.data[buf.pos++] = g;
     buf.data[buf.pos++] = b;
+    buf.data[buf.pos++] = 1.0;
 
     buf.data[buf.pos++] = dx3;
     buf.data[buf.pos++] = dy3;
@@ -478,6 +490,7 @@ export class Batch {
     buf.data[buf.pos++] = r;
     buf.data[buf.pos++] = g;
     buf.data[buf.pos++] = b;
+    buf.data[buf.pos++] = 1.0;
 
     buf.data[buf.pos++] = dx4;
     buf.data[buf.pos++] = dy4;
@@ -487,6 +500,7 @@ export class Batch {
     buf.data[buf.pos++] = r;
     buf.data[buf.pos++] = g;
     buf.data[buf.pos++] = b;
+    buf.data[buf.pos++] = 1.0;
     
     buf.numRects++;
     if(buf.numRects >= this.max) {
@@ -538,13 +552,16 @@ export class Batch {
       let buf = this.texbuffers[i];
       if(buf && buf.numRects > 0) {
         gl.bindTexture(gl.TEXTURE_2D, buf.tex.tex);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.uniform1i(shader.uniforms.tex, 0);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, buf.buffer);
         gl.bufferSubData(gl.ARRAY_BUFFER, 0, buf.data);
         
-        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8 * 4, 0 * 4); //dst
-        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 8 * 4, 2 * 4); //src
-        gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 8 * 4, 4 * 4); //scale
-        gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 8 * 4, 5 * 4); //color
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 9 * 4, 0 * 4); //dst
+        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 9 * 4, 2 * 4); //src
+        gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 9 * 4, 4 * 4); //scale
+        gl.vertexAttribPointer(3, 4, gl.FLOAT, false, 9 * 4, 5 * 4); //color
         
         gl.uniform2f(shader.uniforms.texres, buf.tex.img.width, buf.tex.img.height);
         
@@ -645,47 +662,54 @@ export class ShapeBatch {
     this.gl = gfx.gl;
 
     if(max == undefined) {
-      this.max = 256;
+      this.max = 4096;
     } else {
       this.max = max;
     }
 
+    this.imm_mat = new Mat3();
     this.mat = new Mat3();
 
-    this.data = new Float32Array(this.max * 3 * 5);
+    this.data = new Float32Array(this.max * 3 * 6);
     this.buffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, this.data, this.gl.DYNAMIC_DRAW);
 
+    this.shader = gfx.flat_color_shader;
+    
     this.pos = 0;
     this.numTris = 0;
   }
 
-  color(r, g, b) {
+  color(r, g, b, a=1) {
     this.r = r;
     this.g = g;
     this.b = b;
+    this.a = a;
   }
   
   tri(x1, y1, x2, y2, x3, y3) {
     let buf = this.data;
-    buf[this.pos++] = x1;//this.mat.vx(x1, y1);
-    buf[this.pos++] = y1;//this.mat.vy(x1, y1);
+    buf[this.pos++] = this.imm_mat.vx(x1, y1);
+    buf[this.pos++] = this.imm_mat.vy(x1, y1);
     buf[this.pos++] = this.r;
     buf[this.pos++] = this.g;
     buf[this.pos++] = this.b;
+    buf[this.pos++] = this.a;
     
-    buf[this.pos++] = x2;//this.mat.vx(x2, y2);
-    buf[this.pos++] = y2;//this.mat.vy(x2, y2);
+    buf[this.pos++] = this.imm_mat.vx(x2, y2);
+    buf[this.pos++] = this.imm_mat.vy(x2, y2);
     buf[this.pos++] = this.r;
     buf[this.pos++] = this.g;
     buf[this.pos++] = this.b;
+    buf[this.pos++] = this.a;
     
-    buf[this.pos++] = x3;//this.mat.vx(x3, y3);
-    buf[this.pos++] = y3;//this.mat.vy(x3, y3);
+    buf[this.pos++] = this.imm_mat.vx(x3, y3);
+    buf[this.pos++] = this.imm_mat.vy(x3, y3);
     buf[this.pos++] = this.r;
     buf[this.pos++] = this.g;
     buf[this.pos++] = this.b;
+    buf[this.pos++] = this.a;
 
     this.numTris++;
     if(this.numTris >= this.max) {
@@ -693,6 +717,11 @@ export class ShapeBatch {
     }
   }
 
+  quad(x1, y1, x2, y2, x3, y3, x4, y4) {
+    this.tri(x1, y1, x2, y2, x3, y3);
+    this.tri(x4, y4, x2, y2, x3, y3);
+  }
+  
   rect(x1, y1, x2, y2) {
     this.tri(x1, y1, x2, y1, x2, y2);
     this.tri(x2, y2, x1, y2, x1, y1);
@@ -700,7 +729,7 @@ export class ShapeBatch {
   
   flush(keep) {
     let gl = this.gfx.gl;
-    let shader = this.gfx.flat_color_shader;
+    let shader = this.shader;
 
     gl.useProgram(shader.program);
 
@@ -713,8 +742,8 @@ export class ShapeBatch {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.data);
 
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 5 * 4, 0 * 4); //pos
-    gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 5 * 4, 2 * 4); //color
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 6 * 4, 0 * 4); //pos
+    gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 6 * 4, 2 * 4); //color
 
     gl.drawArrays(gl.TRIANGLES, 0, this.numTris * 3);
 
@@ -725,6 +754,138 @@ export class ShapeBatch {
     
     gl.disableVertexAttribArray(0);
     gl.disableVertexAttribArray(1);
+  }
+}
+
+export class LightBatch {
+  constructor(gfx, max) {
+    this.gfx = gfx;
+    this.gl = gfx.gl;
+
+    if(max == undefined) {
+      this.max = 4096;
+    } else {
+      this.max = max;
+    }
+
+    this.imm_mat = new Mat3();
+    this.mat = new Mat3();
+
+    this.data = new Float32Array(this.max * 3 * 11);
+    this.buffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, this.data, this.gl.DYNAMIC_DRAW);
+
+    this.shader = gfx.light_shader;
+    
+    this.pos = 0;
+    this.numTris = 0;
+  }
+
+  color(r, g, b, a=1) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.a = a;
+  }
+  
+  tri(x1, y1, x2, y2, x3, y3, ax, ay, bx, by, rad) {
+    let buf = this.data;
+    buf[this.pos++] = this.imm_mat.vx(x1, y1);
+    buf[this.pos++] = this.imm_mat.vy(x1, y1);
+    buf[this.pos++] = this.imm_mat.vx(ax, ay);
+    buf[this.pos++] = this.imm_mat.vy(ax, ay);
+    buf[this.pos++] = this.imm_mat.vx(bx, by);
+    buf[this.pos++] = this.imm_mat.vy(bx, by);
+    buf[this.pos++] = rad;
+    buf[this.pos++] = this.r;
+    buf[this.pos++] = this.g;
+    buf[this.pos++] = this.b;
+    buf[this.pos++] = this.a;
+    
+    buf[this.pos++] = this.imm_mat.vx(x2, y2);
+    buf[this.pos++] = this.imm_mat.vy(x2, y2);
+    buf[this.pos++] = this.imm_mat.vx(ax, ay);
+    buf[this.pos++] = this.imm_mat.vy(ax, ay);
+    buf[this.pos++] = this.imm_mat.vx(bx, by);
+    buf[this.pos++] = this.imm_mat.vy(bx, by);
+    buf[this.pos++] = rad;
+    buf[this.pos++] = this.r;
+    buf[this.pos++] = this.g;
+    buf[this.pos++] = this.b;
+    buf[this.pos++] = this.a;
+    
+    buf[this.pos++] = this.imm_mat.vx(x3, y3);
+    buf[this.pos++] = this.imm_mat.vy(x3, y3);
+    buf[this.pos++] = this.imm_mat.vx(ax, ay);
+    buf[this.pos++] = this.imm_mat.vy(ax, ay);
+    buf[this.pos++] = this.imm_mat.vx(bx, by);
+    buf[this.pos++] = this.imm_mat.vy(bx, by);
+    buf[this.pos++] = rad;
+    buf[this.pos++] = this.r;
+    buf[this.pos++] = this.g;
+    buf[this.pos++] = this.b;
+    buf[this.pos++] = this.a;
+
+    this.numTris++;
+    if(this.numTris >= this.max) {
+      this.flush();
+    }
+  }
+
+  point(x, y, rad, realrad) {
+    this._rect(x-rad, y-rad, x+rad, y+rad, x, y, x, y, realrad);
+  }
+
+  rect(x1, y1, x2, y2, ax, ay, bx, by, rad, realrad) {
+    this._rect(x1-rad, y2-rad, x2+rad, x2+rad, ax, ay, bx, by, realrad);
+  }
+
+  line(x1, y1, x2, y2, rad, realrad) {
+    this._rect(x1-rad, y1-rad, x2+rad, y2+rad, x1, y1, x2, y2, rad, realrad);
+  }
+  
+  _rect(x1, y1, x2, y2, ax, ay, bx, by, rad) {
+    this.tri(x1, y1, x2, y1, x2, y2, ax, ay, bx, by, rad);
+    this.tri(x2, y2, x1, y2, x1, y1, ax, ay, bx, by, rad);
+  }
+  
+  flush(keep) {
+    let gl = this.gfx.gl;
+    let shader = this.shader;
+
+    gl.useProgram(shader.program);
+
+    gl.enableVertexAttribArray(0);
+    gl.enableVertexAttribArray(1);
+    gl.enableVertexAttribArray(2);
+    gl.enableVertexAttribArray(3);
+    gl.enableVertexAttribArray(4);
+
+    gl.uniformMatrix3fv(shader.uniforms.matrix, gl.FALSE, this.mat.values);
+    gl.uniform2f(shader.uniforms.viewport, this.gfx.width, this.gfx.height);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.data);
+
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 11 * 4, 0 * 4); //pos
+    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 11 * 4, 2 * 4); //aPos
+    gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 11 * 4, 4 * 4); //bPos
+    gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 11 * 4, 6 * 4); //radius
+    gl.vertexAttribPointer(4, 4, gl.FLOAT, false, 11 * 4, 7 * 4); //color
+
+    gl.drawArrays(gl.TRIANGLES, 0, this.numTris * 3);
+
+    if(!keep) {
+      this.pos = 0;
+      this.numTris = 0;
+    }
+    
+    gl.disableVertexAttribArray(0);
+    gl.disableVertexAttribArray(1);
+    gl.disableVertexAttribArray(2);
+    gl.disableVertexAttribArray(3);
+    gl.disableVertexAttribArray(4);
   }
 }
 
@@ -770,7 +931,7 @@ export class Sprite {
     this.dh = h;
   }
   
-  draw(batch, x, y, scale) {
+  draw(batch, x, y) {
     this.dx = x;
     this.dy = y;
     

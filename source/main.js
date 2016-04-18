@@ -49,6 +49,7 @@ class Game {
     this.gametime.now+= this.gametime.delta;
 
     this.gfx.resize(); //make sure we're the correct size
+
     this.gfx.beginFrame();
     this.input.beginFrame();
     this.state.render();

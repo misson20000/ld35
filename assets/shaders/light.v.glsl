@@ -3,16 +3,19 @@
 precision mediump float;
 
 attribute vec2 vertPos; //0
-attribute vec2 texPos; //1
-attribute float scale; //2
-attribute vec4 color; //3
+attribute vec2 aPos; //1
+attribute vec2 bPos; //2
+attribute float radius; //3
+attribute vec4 color; //4
 
 uniform vec2 viewport;
 uniform mat3 matrix;
 
-varying vec2 vTexPos;
-varying float vScale;
 varying vec4 vColor;
+varying vec2 vA;
+varying vec2 vB;
+varying float vRad;
+varying vec2 vPos;
 
 void main(void) {
   gl_Position = vec4(
@@ -21,7 +24,9 @@ void main(void) {
                      *vec3(1.0, -1.0, 1.0),      //flip
                      1.0);
 
-  vTexPos = texPos;
-  vScale = scale;
   vColor = color;
+  vA = (vec3(aPos, 1.0)*matrix).xy;
+  vB = (vec3(bPos, 1.0)*matrix).xy;
+  vRad = radius;
+  vPos = (vec3(vertPos, 1.0)*matrix).xy;
 }

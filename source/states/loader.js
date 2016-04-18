@@ -1,6 +1,8 @@
 import {Camera} from "../camera.js";
 import {ResourceDownloader} from "../resourcemanager.js";
 import {PlayState} from "./play.js";
+import {AnimTestState} from "./animtest.js";
+import {BgmLoadState} from "./bgm.js";
 
 export class LoaderState {
   constructor(game, resmgr, assetmgr) {
@@ -46,7 +48,7 @@ export class LoaderState {
           }).join("\n"));
         }
         
-        this.game.state = new PlayState(this.game);
+        this.game.state = new BgmLoadState(this.game);
       }, (reason) => {
         this.game.dbg.log("error: \n" + reason);
         throw reason;

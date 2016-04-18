@@ -17,10 +17,8 @@ export class Mat3 {
   }
 
   load(mat) {
-    for(let x = 0; x < 3; x++) {
-      for(let y = 0; y < 3; y++) {
-        this.values[x+(y*3)] = mat.values[x+(y*3)];
-      }
+    for(let i = 0; i < 9; i++) {
+      this.values[i] = mat.values[i];
     }
   }
   
@@ -60,6 +58,15 @@ export class Mat3 {
     this.matmult(tmp_mat2, tmp_mat1);
   }
 
+  scale(f) {
+    tmp_mat1.identity();
+    tmp_mat1.values[0] = f;
+    tmp_mat1.values[4] = f;
+
+    tmp_mat2.load(this);
+    this.matmult(tmp_mat2, tmp_mat1);
+  }
+  
   translate(x, y) {
     tmp_mat1.identity();
     tmp_mat1.values[2+(0*3)] = x;

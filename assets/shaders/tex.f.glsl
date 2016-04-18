@@ -4,7 +4,7 @@ precision lowp float;
 
 varying vec2 vTexPos;
 varying float vScale;
-varying vec3 vColor;
+varying vec4 vColor;
 
 uniform sampler2D tex;
 uniform vec2 texres;
@@ -38,7 +38,7 @@ vec4 textureBlocky(in sampler2D tex, in vec2 uv, in vec2 res) {
 
 
 void main(void) {
-  //vec4 color = textureBlocky(tex, vTexPos, texres);
-    vec4 color = texture2D(tex, vTexPos);
-  gl_FragColor = vec4(vColor, 1.0) * color;
+  vec4 color = textureBlocky(tex, vTexPos, texres);
+  //vec4 color = texture2D(tex, vTexPos);
+  gl_FragColor = color;
 }

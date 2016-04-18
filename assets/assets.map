@@ -7,6 +7,12 @@
   },
   {
     "type": "shader",
+    "id": "shader.vertex.light",
+    "shader_type": "vertex",
+    "source": "shaders/light.v.glsl"
+  },
+  {
+    "type": "shader",
     "id": "shader.fragment.flat.texture",
     "shader_type": "fragment",
     "source": "shaders/tex.f.glsl"
@@ -35,6 +41,12 @@
     "source": "shaders/color.f.glsl"
   },
   {
+    "type": "shader",
+    "id": "shader.fragment.light",
+    "shader_type": "fragment",
+    "source": "shaders/light.f.glsl"
+  },
+  {
     "type": "shader_program",
     "id": "shader.flat.color",
     "shaders": [
@@ -51,54 +63,6 @@
   },
   {
     "type": "shader",
-    "id": "shader.post.gaussian.vertex.horizontal",
-    "shader_type": "vertex",
-    "source": "shaders/post/gauss_horiz.v.glsl"
-  },
-  {
-    "type": "shader",
-    "id": "shader.post.gaussian.vertex.vertical",
-    "shader_type": "vertex",
-    "source": "shaders/post/gauss_vert.v.glsl"
-  },
-  {
-    "type": "shader",
-    "id": "shader.post.gaussian.fragment",
-    "shader_type": "fragment",
-    "source": "shaders/post/gauss.f.glsl"
-  },
-  {
-    "type": "shader_program",
-    "id": "shader.post.gaussian.horizontal",
-    "shaders": [
-      "shader.post.gaussian.vertex.horizontal",
-      "shader.post.gaussian.fragment"
-    ],
-    "attributes": {
-      "vertPos": 0
-    },
-    "uniforms": [
-      "viewport",
-      "tex"
-    ]
-  },
-  {
-    "type": "shader_program",
-    "id": "shader.post.gaussian.vertical",
-    "shaders": [
-      "shader.post.gaussian.vertex.vertical",
-      "shader.post.gaussian.fragment"
-    ],
-    "attributes": {
-      "vertPos": 0
-    },
-    "uniforms": [
-      "viewport",
-      "tex"
-    ]
-  },
-  {
-    "type": "shader",
     "id": "shader.post.vertex.null_vertex",
     "shader_type": "vertex",
     "source": "shaders/post/null.v.glsl"
@@ -108,6 +72,18 @@
     "id": "shader.post.fragment.tint_blue",
     "shader_type": "fragment",
     "source": "shaders/post/tint_blue.f.glsl"
+  },
+  {
+    "type": "shader",
+    "id": "shader.post.fragment.wave",
+    "shader_type": "fragment",
+    "source": "shaders/post/wave.f.glsl"
+  },
+  {
+    "type": "shader",
+    "id": "shader.post.fragment.light",
+    "shader_type": "fragment",
+    "source": "shaders/post/light.f.glsl"
   },
   {
     "type": "shader_program",
@@ -123,5 +99,89 @@
       "viewport",
       "tex"
     ]
+  },
+  {
+    "type": "shader_program",
+    "id": "shader.post.wave",
+    "shaders": [
+      "shader.post.vertex.null_vertex",
+      "shader.post.fragment.wave"
+    ],
+    "attributes": {
+      "vertPos": 0
+    },
+    "uniforms": [
+      "viewport",
+      "tex",
+      "gameTime"
+    ]
+  },
+  {
+    "type": "shader_program",
+    "id": "shader.post.light",
+    "shaders": [
+      "shader.post.vertex.null_vertex",
+      "shader.post.fragment.light"
+    ],
+    "attributes": {
+      "vertPos": 0
+    },
+    "uniforms": [
+      "viewport",
+      "diffuse",
+      "light",
+      "gameTime"
+    ]
+  },
+  {
+    "type": "shader_program",
+    "id": "shader.light",
+    "shaders": [
+      "shader.vertex.light",
+      "shader.fragment.light"
+    ],
+    "attributes": {
+      "vertPos": 0,
+      "aPos": 1,
+      "bPos": 2,
+      "radius": 3,
+      "color": 4
+    },
+    "uniforms": [
+      "viewport",
+      "matrix"
+    ]
+  },
+  {
+    "type": "music",
+    "id": "bgm.track1",
+    "src": "track1.ogg"
+  },
+  {
+    "type": "texture",
+    "id": "fnt.tex.main",
+    "image": "font/fnt_main.png"
+  },
+  {
+    "type": "font",
+    "id": "fnt.main",
+    "tex": "fnt.tex.main",
+    "meta": "font/coder's_crux_regular_12.xml",
+    "scale": 5
+  },
+  {
+    "type": "texture",
+    "id": "tex.level",
+    "image": "level.png"
+  },
+  {
+    "type": "texture",
+    "id": "tex.level2",
+    "image": "level2.png"
+  },
+  {
+    "type": "sfx",
+    "id": "sfx.hit",
+    "src": "hit.wav"
   }
 ]

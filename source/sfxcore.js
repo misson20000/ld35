@@ -19,6 +19,34 @@ export class Music {
 export class SFXCore {
   constructor(game) {
     this.ctx = new AudioContext();
+    this.game = game;
+    this.game.assetManager.addProvider((def, astmgr, resmgr) => {
+      if(def.type == "music") {
+        if(!def.id) {
+          throw "no id";
+        }
+        if(!def.src) {
+          throw "no source";
+        }
+
+        let ast = astmgr.getAsset(def.id);
+        return ast.provide(Promise.resolve(def.src));
+      } else if(def.type == "sfx") {
+        if(!def.id) {
+          throw "no id";
+        }
+        if(!def.src) {
+          throw "no source";
+        }
+
+        let ast = astmgr.getAsset(def.id);
+        return ast.provide(resmgr.queue(def.src).then((res) => {
+          return res.arrayBuffer();
+        }).then((ab) => {
+          return this.ctx.decodeAudioData(ab);
+        }));
+      }
+    });
   }
 
   soundLoader() {
@@ -43,7 +71,7 @@ export class SFXCore {
   
   playSound(ast, vol=1.0) {
     let src = this.ctx.createBufferSource();
-    src.buffer = ast.data;
+    src.buffer = ast;
     let gain = this.ctx.createGain();
     src.connect(gain);
     gain.gain.value = vol;
@@ -54,7 +82,7 @@ export class SFXCore {
 
   playMusic(ast, vol=1.0, loop=true) {
     let aud = new Audio();
-    aud.src = ast.data;
+    aud.src = ast;
     aud.autoplay = true;
     aud.loop = loop;
     let src = this.ctx.createMediaElementSource(aud);
